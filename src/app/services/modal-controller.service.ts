@@ -16,8 +16,9 @@ export class ModalControllerService {
   private readonly _dialog = inject(Dialog);
 
   openNewTaskModal() {
-    return this._dialog.open(TaskFormModalComponent, {
+    return this._dialog.open<ITaskFormControls>(TaskFormModalComponent, {
       ...this.modalSizeOptions,
+      disableClose: true,
       data: {
         mode: 'create',
         formValues: {
@@ -31,6 +32,7 @@ export class ModalControllerService {
   openEditTaskModal(formValues: ITaskFormControls) {
     return this._dialog.open(TaskFormModalComponent, {
       ...this.modalSizeOptions,
+      disableClose: true,
       data: {
         mode: 'edit',
         formValues,
@@ -39,7 +41,7 @@ export class ModalControllerService {
   }
 
   openTaskCommentsModal() {
-    return this._dialog.open(TaskCommentsModalComponent, {
+    return this._dialog.open<ITaskFormControls>(TaskCommentsModalComponent, {
       ...this.modalSizeOptions,
     });
   }
