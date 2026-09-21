@@ -9,35 +9,58 @@ import {
   transferArrayItem,
 } from '@angular/cdk/drag-drop';
 import { ITask } from '../../interfaces/task.interface';
+import { AsyncPipe } from '@angular/common';
+import { TaskStatus } from '../../types/task-status';
+import { TaskStatusEnum } from '../../enums/task-status.enum';
 
 @Component({
   selector: 'app-task-list-section',
-  imports: [TaskCardComponent, CdkDropList, CdkDrag],
+  imports: [TaskCardComponent, CdkDropList, CdkDrag, AsyncPipe],
   templateUrl: './task-list-section.component.html',
   styleUrl: './task-list-section.component.css',
 })
 export class TaskListSectionComponent {
-  todoTasks: ITask[] = [];
-  doingTasks: ITask[] = [];
-  doneTasks: ITask[] = [];
+  readonly _taskService = inject(TaskService);
 
-  private readonly _taskService = inject(TaskService);
+  onCardDrop(event: CdkDragDrop<ITask[]>) {
+    this.moveCardToColumn(event);
 
-  ngOnInit() {
-    this._taskService.todoTasks.subscribe((todoList) => {
-      this.todoTasks = todoList;
-    });
+    const taskId = event.item.data.id;
+    const taskCurrentStatus = event.item.data.status;
+    const droppedColumn = event.container.id;
 
-    this._taskService.doingTasks.subscribe((todoList) => {
-      this.doingTasks = todoList;
-    });
-
-    this._taskService.doneTasks.subscribe((todoList) => {
-      this.doneTasks = todoList;
-    });
+    this.updateTaskStatus(taskId, taskCurrentStatus, droppedColumn);
   }
 
-  drop(event: CdkDragDrop<ITask[]>) {
+  private updateTaskStatus(
+    taskId: string,
+    taskCurrentStatus: TaskStatus,
+    droppedColumn: string,
+  ) {
+    let taskNextStatus: TaskStatus;
+
+    switch (droppedColumn) {
+      case 'to-do-column':
+        taskNextStatus = TaskStatusEnum.TODO;
+        break;
+      case 'doing-column':
+        taskNextStatus = TaskStatusEnum.DOING;
+        break;
+      case 'done-column':
+        taskNextStatus = TaskStatusEnum.DONE;
+        break;
+      default:
+        throw Error('Coluna não identificada');
+    }
+
+    this._taskService.updateTaskStatus(
+      taskId,
+      taskCurrentStatus,
+      taskNextStatus,
+    );
+  }
+
+  private moveCardToColumn(event: CdkDragDrop<ITask[]>) {
     if (event.previousContainer === event.container) {
       moveItemInArray(
         event.container.data,
